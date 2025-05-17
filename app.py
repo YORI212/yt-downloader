@@ -17,7 +17,7 @@ def download():
             'quiet': True,
             'skip_download': True,
             'format': 'best[ext=mp4]/best',
-            'cookiefile': 'cookies.txt'
+            'cookiefile': 'cookies.txt'  # Make sure this path is correct
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -31,7 +31,7 @@ def download():
                         'format_id': f.get('format_id'),
                         'format_note': f.get('format_note'),
                         'url': f.get('url'),
-                        'height': height
+                        'height': height  # ✅ fixed comma above this line
                     }
 
                     if height < 480:
