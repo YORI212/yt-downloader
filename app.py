@@ -17,7 +17,7 @@ def download():
     'quiet': True,
     'skip_download': True,
     'format': 'best[ext=mp4]/best',
-    'cookies_from_browser': 'chrome',
+    'cookiefile': 'cookies.txt',
     'nocheckcertificate': True,
     'noplaylist': True,
     'cachedir': False,
