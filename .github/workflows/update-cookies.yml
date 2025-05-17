@@ -13,7 +13,7 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.GH_PAT }}  # 👈 Use your PAT here
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v4
@@ -21,8 +21,7 @@ jobs:
           python-version: '3.11'
 
       - name: 📦 Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: 🚀 Run update script
         run: python update_cookies.py
