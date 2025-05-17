@@ -1,1 +1,7 @@
-testing
+# Netscape HTTP Cookie File
+.youtube.com	TRUE	/	TRUE	1782055580	PREF	f4=4000000&f6=40000000&tz=Asia.Katmandu
+.youtube.com	TRUE	/	TRUE	0	YSC	ypPpeuqwvdU
+.youtube.com	TRUE	/	TRUE	1763047578	__Secure-ROLLOUT_TOKEN	CPHwnabjucLkJBDRgtmp6KqNAxiIh6Cq6KqNAw%3D%3D
+.youtube.com	TRUE	/	TRUE	1763047578	VISITOR_PRIVACY_METADATA	CgJOUBIEGgAgEA%3D%3D
+.youtube.com	TRUE	/	TRUE	1763047578	VISITOR_INFO1_LIVE	zxro44_sQHo
+.youtube.com	TRUE	/	TRUE	1747497376	GPS	1
