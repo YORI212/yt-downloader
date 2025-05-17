@@ -31,9 +31,7 @@ def download():
                         'format_id': f.get('format_id'),
                         'format_note': f.get('format_note'),
                         'url': f.get('url'),
-                        'cookiefile': 'cookies.txt'
-
-                        'height': height
+                       
                     }
 
                     if height < 480:
