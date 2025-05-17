@@ -14,27 +14,29 @@ def download():
 
     try:
         ydl_opts = {
-    'quiet': True,
-    'skip_download': True,
-    'format': 'best[ext=mp4]/best',
-    'cookiefile': 'cookies.txt'  # 👈 Add this line
-}
-
+            'quiet': True,
+            'skip_download': True,
+            'format': 'bestvideo+bestaudio/best',
+            'forcejson': True,
+            'noplaylist': True
+        }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             formats = []
             for f in info.get('formats', []):
-                if f.get('ext') == 'mp4' and f.get('url'):
+                if f.get('ext') == 'mp4' and f.get('url') and f.get('height'):
                     formats.append({
                         'format_id': f.get('format_id'),
                         'format_note': f.get('format_note'),
-                        'url': f.get('url')
+                        'url': f.get('url'),
+                        'height': f.get('height'),
+                        'filesize': f.get('filesize')
                     })
             return jsonify({'title': info.get('title'), 'formats': formats})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ✅ Required for Render deployment
+# ✅ Required for Render and other platforms
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 10000))
