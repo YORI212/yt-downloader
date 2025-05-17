@@ -17,8 +17,12 @@ def download():
     'quiet': True,
     'skip_download': True,
     'format': 'best[ext=mp4]/best',
-    'cookiefile': 'cookies.txt'
+    'cookiefile': 'cookies.txt',
+    'nocheckcertificate': True,
+    'noplaylist': True,
+    'cachedir': False,
 }
+
 
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
