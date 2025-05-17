@@ -14,11 +14,11 @@ def download():
 
     try:
         ydl_opts = {
-    'quiet': True,
-    'skip_download': True,
-    'format': 'best[ext=mp4]/best',
-    'cookiefile': 'cookies.txt'  # Make sure path is correct
-}
+            'quiet': True,
+            'skip_download': True,
+            'format': 'best[ext=mp4]/best',
+            'cookiefile': 'cookies.txt'
+        }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -31,7 +31,7 @@ def download():
                         'format_id': f.get('format_id'),
                         'format_note': f.get('format_note'),
                         'url': f.get('url'),
-                       
+                        'height': height
                     }
 
                     if height < 480:
@@ -49,7 +49,6 @@ def download():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Optional: Needed if running locally
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
