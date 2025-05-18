@@ -6,7 +6,9 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
 # === SETTINGS ===
-GITHUB_TOKEN = "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"  # Replace with your actual token (or set as env var)
+import os
+GITHUB_TOKEN = os.environ.get('GH_PAT')
+  # Replace with your actual token (or set as env var)
 REPO = "YORI212/yt-downloader"           # Your GitHub repo in user/repo format
 FILE_PATH = "cookies.txt"                 # File to update in the repo
 BRANCH = "main"                          # Branch name
