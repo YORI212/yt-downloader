@@ -2,7 +2,7 @@ name: 🕒 Auto Update Cookies
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/1000000000000 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 🚀 Run update script
-        run: python update_cookies.py
+ 
 
       - name: ⬆️ Commit & push updated cookies
         run: |
