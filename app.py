@@ -5,7 +5,7 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app, origins="*")
 
-@app.route('/mission-api/download', methods=['POST'])
+@app.route('/download', methods=['POST'])
 def download():
     data = request.json
     url = data.get('url')
@@ -25,32 +25,32 @@ def download():
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            formats = {'low': [], 'medium': [], 'high': []}
+            
+            progressive_formats = []  # video + audio
+            video_only_formats = []   # video only
 
             for f in info.get('formats', []):
                 if f.get('ext') != 'mp4' or not f.get('url'):
                     continue
 
-                height = f.get('height') or 0
                 format_entry = {
                     'format_id': f.get('format_id'),
                     'format_note': f.get('format_note'),
                     'url': f.get('url'),
-                    'height': height,
+                    'height': f.get('height') or 0,
                     'has_audio': f.get('acodec') != 'none',
                     'has_video': f.get('vcodec') != 'none',
                 }
 
-                if height < 480:
-                    formats['low'].append(format_entry)
-                elif 480 <= height < 720:
-                    formats['medium'].append(format_entry)
-                elif height >= 720:
-                    formats['high'].append(format_entry)
+                if format_entry['has_audio'] and format_entry['has_video']:
+                    progressive_formats.append(format_entry)
+                elif format_entry['has_video'] and not format_entry['has_audio']:
+                    video_only_formats.append(format_entry)
 
             return jsonify({
                 'title': info.get('title'),
-                'formats': formats
+                'progressive': progressive_formats,
+                'video_only': video_only_formats
             }), 200
 
     except Exception as e:
