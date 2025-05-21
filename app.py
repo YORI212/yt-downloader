@@ -5,7 +5,7 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app, origins="*")
 
-@app.route('/download', methods=['POST'])
+@app.route('/mission-api/download', methods=['POST'])
 def download():
     data = request.json
     url = data.get('url')
