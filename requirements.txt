@@ -1,4 +1,4 @@
-selenium
+
 requests
 flask
 flask-cors
