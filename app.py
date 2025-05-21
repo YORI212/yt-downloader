@@ -3,7 +3,7 @@ from flask_cors import CORS
 import yt_dlp
 
 app = Flask(__name__)
-CORS(app, origins="*")
+CORS(app)
 
 @app.route('/mission-api/download', methods=['POST'])
 def download():
@@ -25,33 +25,31 @@ def download():
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            
-            progressive_formats = []  # video + audio
-            video_only_formats = []   # video only
+            video_only = []
+            progressive = []
 
             for f in info.get('formats', []):
                 if f.get('ext') != 'mp4' or not f.get('url'):
                     continue
 
-                format_entry = {
+                format_data = {
                     'format_id': f.get('format_id'),
-                    'format_note': f.get('format_note'),
+                    'format_note': f.get('format_note') or f.get('resolution'),
                     'url': f.get('url'),
-                    'height': f.get('height') or 0,
-                    'has_audio': f.get('acodec') != 'none',
-                    'has_video': f.get('vcodec') != 'none',
+                    'height': f.get('height') or 0
                 }
 
-                if format_entry['has_audio'] and format_entry['has_video']:
-                    progressive_formats.append(format_entry)
-                elif format_entry['has_video'] and not format_entry['has_audio']:
-                    video_only_formats.append(format_entry)
+                if f.get('vcodec') != 'none' and f.get('acodec') == 'none':
+                    video_only.append(format_data)
+                elif f.get('acodec') != 'none' and f.get('vcodec') != 'none':
+                    progressive.append(format_data)
 
             return jsonify({
                 'title': info.get('title'),
-                'progressive': progressive_formats,
-                'video_only': video_only_formats
-            }), 200
+                'thumbnail': info.get('thumbnail'),
+                'progressive': progressive,
+                'video_only': video_only
+            })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
