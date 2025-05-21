@@ -5,7 +5,7 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app, origins="*")
 
-@app.route('/download', methods=['POST'])
+@app.route('/mission-api/download', methods=['POST'])
 def download():
     data = request.json
     url = data.get('url')
@@ -14,29 +14,33 @@ def download():
 
     try:
         ydl_opts = {
-    'quiet': True,
-    'skip_download': True,
-    'format': 'best[ext=mp4]/best',
-    'cookiefile': 'cookies.txt',
-    'nocheckcertificate': True,
-    'noplaylist': True,
-    'cachedir': False,
-}
-
-
+            'quiet': True,
+            'skip_download': True,
+            'format': 'best[ext=mp4]/best',
+            'cookiefile': 'cookies.txt',
+            'nocheckcertificate': True,
+            'noplaylist': True,
+            'cachedir': False,
+        }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             formats = {'low': [], 'medium': [], 'high': []}
 
             for f in info.get('formats', []):
-                if f.get('ext') == 'mp4' and f.get('url'):
+                # ✅ Filter only formats that contain both video and audio (progressive)
+                if (
+                    f.get('ext') == 'mp4' and
+                    f.get('url') and
+                    f.get('vcodec') != 'none' and
+                    f.get('acodec') != 'none'
+                ):
                     height = f.get('height') or 0
                     format_entry = {
                         'format_id': f.get('format_id'),
                         'format_note': f.get('format_note'),
                         'url': f.get('url'),
-                        'height': height  # ✅ make sure this line has a comma above it
+                        'height': height
                     }
 
                     if height < 480:
