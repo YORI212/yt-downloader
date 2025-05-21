@@ -5,7 +5,7 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app, origins="*")
 
-@app.route('/mission-api/download', methods=['POST'])
+@app.route('/download', methods=['POST'])
 def download():
     data = request.json
     url = data.get('url')
@@ -16,7 +16,7 @@ def download():
         ydl_opts = {
             'quiet': True,
             'skip_download': True,
-            'format': 'best[ext=mp4]/best',
+            'format': 'bestvideo+bestaudio/best',
             'cookiefile': 'cookies.txt',
             'nocheckcertificate': True,
             'noplaylist': True,
@@ -28,27 +28,25 @@ def download():
             formats = {'low': [], 'medium': [], 'high': []}
 
             for f in info.get('formats', []):
-                # ✅ Filter only formats that contain both video and audio (progressive)
-                if (
-                    f.get('ext') == 'mp4' and
-                    f.get('url') and
-                    f.get('vcodec') != 'none' and
-                    f.get('acodec') != 'none'
-                ):
-                    height = f.get('height') or 0
-                    format_entry = {
-                        'format_id': f.get('format_id'),
-                        'format_note': f.get('format_note'),
-                        'url': f.get('url'),
-                        'height': height
-                    }
+                if f.get('ext') != 'mp4' or not f.get('url'):
+                    continue
 
-                    if height < 480:
-                        formats['low'].append(format_entry)
-                    elif 480 <= height < 720:
-                        formats['medium'].append(format_entry)
-                    elif height >= 720:
-                        formats['high'].append(format_entry)
+                height = f.get('height') or 0
+                format_entry = {
+                    'format_id': f.get('format_id'),
+                    'format_note': f.get('format_note'),
+                    'url': f.get('url'),
+                    'height': height,
+                    'has_audio': f.get('acodec') != 'none',
+                    'has_video': f.get('vcodec') != 'none',
+                }
+
+                if height < 480:
+                    formats['low'].append(format_entry)
+                elif 480 <= height < 720:
+                    formats['medium'].append(format_entry)
+                elif height >= 720:
+                    formats['high'].append(format_entry)
 
             return jsonify({
                 'title': info.get('title'),
