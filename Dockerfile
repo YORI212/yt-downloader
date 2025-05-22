@@ -1,16 +1,23 @@
+# Base image
 FROM python:3.10-slim
 
-# Install ffmpeg
-RUN apt update && apt install -y ffmpeg
+# Install system dependencies including ffmpeg
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
+    apt-get install -y gcc libffi-dev libssl-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
+# Set work directory
 WORKDIR /app
 
-# Copy all project files
+# Copy project files into the container
 COPY . .
 
-# Install Python dependencies
+# Install Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Run the app
+# Expose the port your app runs on
+EXPOSE 5000
+
+# Run your Flask app
 CMD ["python", "app.py"]
