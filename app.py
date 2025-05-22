@@ -16,7 +16,7 @@ def download():
         ydl_opts = {
             'quiet': True,
             'skip_download': False,
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'format":"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'cookiefile': 'cookies.txt',
             'nocheckcertificate': True,
             'noplaylist': True,
