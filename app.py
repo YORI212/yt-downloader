@@ -15,7 +15,7 @@ def download():
     try:
         ydl_opts = {
             'quiet': True,
-            'skip_download': True,
+            'skip_download': False,
             'format': 'bestvideo+bestaudio/best',
             'cookiefile': 'cookies.txt',
             'nocheckcertificate': True,
