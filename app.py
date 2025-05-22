@@ -20,48 +20,69 @@ def download():
 
     try:
         video_id = str(uuid.uuid4())
-        video_path = os.path.join(DOWNLOAD_DIR, f"{video_id}_video.mp4")
-        audio_path = os.path.join(DOWNLOAD_DIR, f"{video_id}_audio.m4a")
-        output_path = os.path.join(DOWNLOAD_DIR, f"{video_id}_merged.mp4")
+        output_path = os.path.join(DOWNLOAD_DIR, f"{video_id}_output.mp4")
+        temp_video = os.path.join(DOWNLOAD_DIR, f"{video_id}_video.mp4")
+        temp_audio = os.path.join(DOWNLOAD_DIR, f"{video_id}_audio.m4a")
 
-        ydl_video_opts = {
-            'format': 'bestvideo',
-            'outtmpl': video_path,
+        # First, try downloading best combined progressive format (video+audio)
+        ydl_opts_combined = {
+            'format': 'best[ext=mp4]/best',
+            'outtmpl': output_path,
             'cookiefile': 'cookies.txt',
             'quiet': True,
             'nocheckcertificate': True,
-            'noplaylist': True
+            'noplaylist': True,
         }
 
-        ydl_audio_opts = {
-            'format': 'bestaudio',
-            'outtmpl': audio_path,
+        with yt_dlp.YoutubeDL(ydl_opts_combined) as ydl:
+            info = ydl.extract_info(url, download=True)
+
+        # If file exists, return directly
+        if os.path.exists(output_path):
+            return send_file(output_path, as_attachment=True)
+
+        # If combined format is not available, download video and audio separately and merge
+
+        # Download video-only (bestvideo)
+        ydl_opts_video = {
+            'format': 'bestvideo[ext=mp4]/bestvideo',
+            'outtmpl': temp_video,
             'cookiefile': 'cookies.txt',
             'quiet': True,
             'nocheckcertificate': True,
-            'noplaylist': True
+            'noplaylist': True,
         }
-
-        # Download best video
-        with yt_dlp.YoutubeDL(ydl_video_opts) as ydl:
-            ydl.extract_info(url, download=True)
-
-        # Download best audio
-        with yt_dlp.YoutubeDL(ydl_audio_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts_video) as ydl:
             ydl.download([url])
 
-        # Merge video and audio with ffmpeg
+        # Download best audio
+        ydl_opts_audio = {
+            'format': 'bestaudio[ext=m4a]/bestaudio',
+            'outtmpl': temp_audio,
+            'cookiefile': 'cookies.txt',
+            'quiet': True,
+            'nocheckcertificate': True,
+            'noplaylist': True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts_audio) as ydl:
+            ydl.download([url])
+
+        # Merge video and audio
         cmd = [
             'ffmpeg', '-y',
-            '-i', video_path,
-            '-i', audio_path,
+            '-i', temp_video,
+            '-i', temp_audio,
             '-c:v', 'copy',
             '-c:a', 'aac',
             output_path
         ]
         subprocess.run(cmd, check=True)
 
-        # Send merged file as attachment
+        # Cleanup temp files
+        os.remove(temp_video)
+        os.remove(temp_audio)
+
+        # Return merged file
         return send_file(output_path, as_attachment=True)
 
     except Exception as e:
