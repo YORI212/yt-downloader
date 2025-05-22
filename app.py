@@ -1,9 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import yt_dlp
+import uuid
+import os
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
+
+DOWNLOAD_DIR = '/tmp/downloads'
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 @app.route('/mission-api/download', methods=['POST'])
 def download():
@@ -13,43 +19,51 @@ def download():
         return jsonify({'error': 'No URL provided'}), 400
 
     try:
-        ydl_opts = {
-            'quiet': True,
-            'skip_download': True,
-            'format': 'bestvideo+bestaudio/best',
+        video_id = str(uuid.uuid4())
+        video_path = os.path.join(DOWNLOAD_DIR, f"{video_id}_video.mp4")
+        audio_path = os.path.join(DOWNLOAD_DIR, f"{video_id}_audio.m4a")
+        output_path = os.path.join(DOWNLOAD_DIR, f"{video_id}_merged.mp4")
+
+        ydl_video_opts = {
+            'format': 'bestvideo[ext=mp4]',
+            'outtmpl': video_path,
             'cookiefile': 'cookies.txt',
+            'quiet': True,
             'nocheckcertificate': True,
-            'noplaylist': True,
-            'cachedir': False,
+            'noplaylist': True
         }
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            video_only = []
-            progressive = []
+        ydl_audio_opts = {
+            'format': 'bestaudio[ext=m4a]',
+            'outtmpl': audio_path,
+            'cookiefile': 'cookies.txt',
+            'quiet': True,
+            'nocheckcertificate': True,
+            'noplaylist': True
+        }
 
-            for f in info.get('formats', []):
-                if f.get('ext') != 'mp4' or not f.get('url'):
-                    continue
+        # Download best video
+        with yt_dlp.YoutubeDL(ydl_video_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
 
-                format_data = {
-                    'format_id': f.get('format_id'),
-                    'format_note': f.get('format_note') or f.get('resolution'),
-                    'url': f.get('url'),
-                    'height': f.get('height') or 0
-                }
+        # Download best audio
+        with yt_dlp.YoutubeDL(ydl_audio_opts) as ydl:
+            ydl.download([url])
 
-                if f.get('vcodec') != 'none' and f.get('acodec') == 'none':
-                    video_only.append(format_data)
-                elif f.get('acodec') != 'none' and f.get('vcodec') != 'none':
-                    progressive.append(format_data)
+        # Merge using ffmpeg
+        cmd = [
+            'ffmpeg', '-y',
+            '-i', video_path,
+            '-i', audio_path,
+            '-c:v', 'copy',
+            '-c:a', 'aac',
+            '-strict', 'experimental',
+            output_path
+        ]
+        subprocess.run(cmd, check=True)
 
-            return jsonify({
-                'title': info.get('title'),
-                'thumbnail': info.get('thumbnail'),
-                'progressive': progressive,
-                'video_only': video_only
-            })
+        # Optional: return a direct download URL instead
+        return send_file(output_path, as_attachment=True)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
